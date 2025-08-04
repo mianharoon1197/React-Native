@@ -61,9 +61,12 @@ function SignUp() {
         </TouchableOpacity>
       </LinearGradient>
 
-      <Text style={styles.signinText}>
-        Already have an account? <Text style={styles.link}>Sign in</Text>
-      </Text>
+      <View style={styles.signinRow}>
+        <Text style={styles.signinText}>Already have an account? </Text>
+        <TouchableOpacity>
+          <Text style={styles.link}>Sign in</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -133,11 +136,15 @@ const styles = StyleSheet.create({
     color: 'white',
     paddingVertical: 5,
   },
-  signinText: {
-    textAlign: 'center',
-    fontSize: 10,
-    color: '#666',
+  signinRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 20,
+  },
+  signinText: {
+    fontSize: 11,
+    color: '#444',
   },
 });
 
