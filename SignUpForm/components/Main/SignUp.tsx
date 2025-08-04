@@ -10,9 +10,12 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CheckBox from '@react-native-community/checkbox';
+import { useState } from 'react';
 
 function SignUp() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  const [checked, setChecked] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -41,19 +44,21 @@ function SignUp() {
 
       <View style={styles.terms}>
         <CheckBox
-          tintColors={{ true: '#7F00FF', false: '#6d2dacff' }}
+          value={checked}
+          onValueChange={newVal => setChecked(newVal)}
+          tintColors={{ true: '#7F00FF', false: '#7b06efff' }}
           style={styles.checkBox}
         />
-        <Text style={styles.termsText}>
+        <Text style={styles.smallText}>
           I read and agree to{' '}
           <Text style={styles.link}>Terms & Conditions</Text>
         </Text>
       </View>
 
       <LinearGradient
-        colors={['#7F00FF', '#007BFF']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 2, y: 1 }}
+        colors={['#7F00FF', '#2600ffff']}
+        start={{ x: 0.4, y: 1 }}
+        end={{ x: 1, y: 0 }}
         style={styles.button}
       >
         <TouchableOpacity>
@@ -62,7 +67,7 @@ function SignUp() {
       </LinearGradient>
 
       <View style={styles.signinRow}>
-        <Text style={styles.signinText}>Already have an account? </Text>
+        <Text style={styles.smallText}>Already have an account? </Text>
         <TouchableOpacity>
           <Text style={styles.link}>Sign in</Text>
         </TouchableOpacity>
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
   checkBox: {
     transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
   },
-  termsText: {
+  smallText: {
     fontSize: 11,
     color: '#444',
   },
@@ -140,11 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-  },
-  signinText: {
-    fontSize: 11,
-    color: '#444',
+    marginTop: 25,
   },
 });
 
