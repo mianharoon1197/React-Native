@@ -1,11 +1,80 @@
-import React from 'react'
-
-function TopCurve() {
+import React from 'react';
+import { View, StyleSheet, Text, ImageBackground } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+export default function App() {
   return (
-    <div>
-      
-    </div>
-  )
+    <View style={styles.container}>
+      <View style={styles.wrapper}>
+        <ImageBackground
+          source={require('../../assets/building.jpg')}
+          style={styles.topImage}
+          resizeMode="cover"
+        >
+          <View style={styles.overlay} />
+          <Ionicons
+            name="arrow-back-outline"
+            size={25}
+            style={styles.iconArrow}
+          ></Ionicons>
+          <Text style={styles.companyText}>Company Profile</Text>
+        </ImageBackground>
+
+        <View style={styles.curve}>
+          <View
+            style={[styles.leftCurve, { transform: [{ rotate: '-7deg' }] }]}
+          />
+        </View>
+      </View>
+    </View>
+  );
 }
 
-export default TopCurve
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  wrapper: {
+    width: '100%',
+    height: 300,
+    color: 'red',
+    overflow: 'hidden',
+  },
+  topImage: {
+    width: '100%',
+    height: 300,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,100,200,0.4)',
+  },
+
+  iconArrow: {
+    color: '#fff',
+    top: 30,
+  },
+  companyText: {
+    textAlign: 'center',
+    fontSize: 18,
+    top: 30,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  curve: {
+    width: '140%',
+    height: '100%',
+    backgroundColor: '#33bbee',
+    borderRadius: '100%',
+    bottom: -200,
+    position: 'absolute',
+    alignSelf: 'center',
+    overflow: 'hidden',
+  },
+  leftCurve: {
+    backgroundColor: '#fff',
+    width: '100%',
+    height: '100%',
+    bottom: 0,
+    borderRadius: '100%',
+  },
+});
