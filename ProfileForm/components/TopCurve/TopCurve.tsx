@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, ImageBackground } from 'react-native';
+import { View, StyleSheet, Text, ImageBackground, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 export default function App() {
   return (
@@ -24,6 +24,14 @@ export default function App() {
             style={[styles.leftCurve, { transform: [{ rotate: '-7deg' }] }]}
           />
         </View>
+
+        <View style={styles.circleContainer}>
+          <Image
+            source={require('../../assets/profile.png')}
+            style={styles.profileImage}
+          />
+          <View style={styles.profileBadge} />
+        </View>
       </View>
     </View>
   );
@@ -36,7 +44,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '100%',
-    height: 300,
+    height: 350,
     color: 'red',
     overflow: 'hidden',
   },
@@ -51,12 +59,13 @@ const styles = StyleSheet.create({
 
   iconArrow: {
     color: '#fff',
-    top: 30,
+    top: 50,
+    left: 10,
   },
   companyText: {
     textAlign: 'center',
     fontSize: 18,
-    top: 30,
+    top: 25,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -76,5 +85,32 @@ const styles = StyleSheet.create({
     height: '100%',
     bottom: 0,
     borderRadius: '100%',
+  },
+  circleContainer: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    alignSelf: 'center',
+    top: 145,
+    //overflow: 'hidden',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  profileBadge: {
+    position: 'absolute',
+    right: 3,
+    top: '50%',
+    transform: [{ translateY: -40 }],
+    width: 15,
+    height: 15,
+    backgroundColor: '#fff',
+    borderRadius: 7.5,
+    borderWidth: 3,
+    borderColor: 'blue',
   },
 });
