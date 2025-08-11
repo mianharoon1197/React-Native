@@ -9,6 +9,7 @@ import {
 
 import TopCurve from './components/TopCurve/TopCurve';
 import MainContent from './components/MainContent/MainContent';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
