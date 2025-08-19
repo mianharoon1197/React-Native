@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 30,
-    color: '#004d40',
+    color: '#004e30',
   },
   inputWrapper: {
     width: '100%',
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 30,
     paddingHorizontal: 10,
+
     backgroundColor: '#fff',
     shadowColor: '#004d40',
     shadowOpacity: 0.2,
