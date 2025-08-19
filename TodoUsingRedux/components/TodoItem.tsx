@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-
   counterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -152,8 +151,12 @@ const styles = StyleSheet.create({
     color: '#004d40',
     fontWeight: '600',
     marginLeft: 5,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   inputEdit: {
+    flex: 1,
+    flexShrink: 1,
     fontSize: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#004d40',
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     borderRadius: 20,
     padding: 6,
-    marginLeft: 8,
+    marginLeft: 5,
   },
   deleteBtn: {
     backgroundColor: '#d32f2f',
