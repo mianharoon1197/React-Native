@@ -8,7 +8,9 @@ type Todo = {
 
 type TodoState = Todo[];
 
-const initialState: TodoState = [];
+const initialState: TodoState = [
+  { id: '1', title: 'Hello, How are You', count:  0}
+];
 const todoSlice = createSlice({
   name: 'todo',
   initialState,
@@ -26,9 +28,6 @@ const todoSlice = createSlice({
       const todo = state.find(t => t.id === action.payload.id);
       if (todo) todo.title = action.payload.newText;
     },
-    clearAllTodos: () => {
-      return [];
-    },
     incrementCount: (state, action: PayloadAction<string>) => {
       const todo = state.find(t => t.id === action.payload);
       if (todo) todo.count += 1;
@@ -37,7 +36,10 @@ const todoSlice = createSlice({
       const todo = state.find(t => t.id === action.payload);
       if (todo) todo.count -= 1;
     },
-    clearCount: state => {
+    clearAllTodos: () => {
+      return [];
+    },
+    clearAllCounts: state => {
       state.forEach(todo => {
         todo.count = 0;
       });
@@ -52,5 +54,5 @@ export const {
   clearAllTodos,
   incrementCount,
   decrementCount,
-  clearCount,
+  clearAllCounts,
 } = todoSlice.actions;
