@@ -13,9 +13,21 @@ type TodoItemProps = {
   title: string;
   deleteTodo: (id: string) => void;
   editTodo: (id: string, newTitle: string) => void;
+  incrementCount: (id: string) => void;
+  decrementCount: (id: string) => void;
+  count: number;
+  clearCount: (id: string) => void;
 };
 
-function TodoItem({ id, title, deleteTodo, editTodo }: TodoItemProps) {
+function TodoItem({
+  id,
+  title,
+  deleteTodo,
+  editTodo,
+  count,
+  incrementCount,
+  decrementCount,
+}: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(title);
 
@@ -33,7 +45,23 @@ function TodoItem({ id, title, deleteTodo, editTodo }: TodoItemProps) {
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        <View style={styles.leftCircle} />
+        <View style={styles.counterContainer}>
+          <TouchableOpacity
+            onPress={() => decrementCount(id)}
+            style={[styles.counterBtn, { backgroundColor: '#c71c1c' }]}
+          >
+            <Text style={styles.counterText}>-</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.countValue}>{count}</Text>
+
+          <TouchableOpacity
+            onPress={() => incrementCount(id)}
+            style={[styles.counterBtn, { backgroundColor: '#1b5e20' }]}
+          >
+            <Text style={styles.counterText}>+</Text>
+          </TouchableOpacity>
+        </View>
         {isEditing ? (
           <TextInput
             value={editText}
@@ -89,7 +117,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
 
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 550,
     alignSelf: 'center',
     shadowColor: '#004d40',
     shadowOpacity: 0.15,
@@ -103,17 +131,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  leftCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#00796b',
-    marginRight: 15,
+
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  counterBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginHorizontal: 6,
+  },
+  counterText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  countValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#004d40',
   },
   todoText: {
     fontSize: 16,
     color: '#004d40',
     fontWeight: '600',
+    marginLeft: 5,
   },
   inputEdit: {
     fontSize: 16,
@@ -129,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     borderRadius: 20,
     padding: 6,
-    marginLeft: 8, // instead of gap
+    marginLeft: 8,
   },
   deleteBtn: {
     backgroundColor: '#d32f2f',
