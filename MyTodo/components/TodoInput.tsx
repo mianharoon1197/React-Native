@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 550,
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
