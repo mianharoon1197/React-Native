@@ -2,15 +2,13 @@ name: Android Release APK (Todo)
 
 on:
   push:
-    tags: ['todo-v*.*.*']   # only builds when you push a tag like todo-v1.0.0
-  workflow_dispatch:        # also lets you run it manually
+    tags: ['todo-v*.*.*']   # builds only when you push a tag like todo-v1.0.0
+  workflow_dispatch:        # lets you run it manually
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: TodoUsingRedux   
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,6 +18,7 @@ jobs:
           cache: 'npm'
 
       - name: Install deps
+        working-directory: TodoUsingRedux
         run: npm ci
 
       - uses: actions/setup-java@v4
@@ -30,6 +29,7 @@ jobs:
       - uses: android-actions/setup-android@v3
 
       - name: Decode Keystore
+        working-directory: TodoUsingRedux
         run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/my-release-key.jks
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
