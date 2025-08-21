@@ -2,36 +2,49 @@ name: Android Release APK (Todo)
 
 on:
   push:
-    tags: ['todo-v*.*.*']   # builds only when you push a tag like todo-v1.0.0
-  workflow_dispatch:        # lets you run it manually
+    tags: ['todo-v*.*.*']   # only builds when you push a tag like todo-v1.0.0
+  workflow_dispatch:        # also lets you run manually
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checkout code
       - uses: actions/checkout@v4
 
+      # 2. Setup Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      # 3. Install dependencies (pointing to TodoUsingRedux folder)
       - name: Install deps
         working-directory: TodoUsingRedux
         run: npm install --legacy-peer-deps
 
+      # 4. Setup Java
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 5. Setup Android SDK
       - uses: android-actions/setup-android@v3
 
+      # 6. Decode Keystore (from GitHub secret)
       - name: Decode Keystore
         working-directory: TodoUsingRedux
         run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/my-release-key.jks
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
+      # 7. Give gradlew permission
+      - name: Make gradlew executable
+        working-directory: TodoUsingRedux/android
+        run: chmod +x gradlew
+
+      # 8. Build release APK
       - name: Build release APK
         working-directory: TodoUsingRedux/android
         env:
@@ -41,6 +54,7 @@ jobs:
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon
 
+      # 9. Publish APK to GitHub Releases
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
