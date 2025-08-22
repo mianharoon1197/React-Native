@@ -2,8 +2,8 @@ name: Android Release APK (Todo)
 
 on:
   push:
-    tags: ['todo-v*.*.*']   # only builds when you push a tag like todo-v1.0.0
-  workflow_dispatch:        # also lets you run manually
+    tags: ['todo-v*.*.*']  
+  workflow_dispatch:       
 
 jobs:
   build:
