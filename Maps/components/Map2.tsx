@@ -18,21 +18,7 @@ type MarkerType = {
 };
 
 export default function MapScreen() {
-  const [markers, setMarkers] = useState<MarkerType[]>([
-    {
-      id: '1',
-      title: 'Islamabad',
-      description: 'Capital of Pakistan 🇵🇰',
-      coordinates: [73.0479, 33.6844],
-    },
-    {
-      id: '2',
-      title: 'Lahore',
-      description: 'City of Gardens 🌳',
-      coordinates: [74.3587, 31.5204],
-    },
-  ]);
-
+  const [markers, setMarkers] = useState<MarkerType[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
@@ -40,17 +26,22 @@ export default function MapScreen() {
   const [pendingCoords, setPendingCoords] = useState<[number, number] | null>(
     null,
   );
+  const [activeMarker, setActiveMarker] = useState<[number, number] | null>(
+    null,
+  );
 
-  // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [formPosition, setFormPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   const addMarker = () => {
     if (!title || !desc || !pendingCoords) {
-      Alert.alert(
-        '⚠️ Please long-press on the map and fill title + description.',
-      );
+      Alert.alert('⚠️ Please long-press on the map then fill details.');
       return;
     }
 
@@ -62,58 +53,94 @@ export default function MapScreen() {
     };
 
     setMarkers([...markers, newMarker]);
-
+    setActiveMarker(newMarker.coordinates);
     setTitle('');
     setDesc('');
     setPendingCoords(null);
+    setShowForm(false);
+    setFormPosition(null);
   };
 
-  const startEditing = (m: MarkerType) => {
-    setEditingId(m.id);
-    setEditTitle(m.title);
-    setEditDesc(m.description);
+  const editDetails = (marker: MarkerType) => {
+    setEditingId(marker.id);
+    setEditTitle(marker.title);
+    setEditDesc(marker.description);
+  };
+
+  const deleteMarker = (id: string) => {
+    const newMarkers = markers.filter(marker => marker.id !== id);
+    setMarkers(newMarkers);
+    setSelected(null);
+
+    if (newMarkers.length > 0) {
+      setActiveMarker(newMarkers[newMarkers.length - 1].coordinates);
+    } else {
+      setActiveMarker([73.0479, 33.6844]);
+    }
   };
 
   const saveEdit = (id: string) => {
-    setMarkers(markers.map(m =>
-      m.id === id ? { ...m, title: editTitle, description: editDesc } : m
-    ));
-    setEditingId(null);
-  };
-
-  const cancelEdit = () => {
+    setMarkers(
+      markers.map(marker =>
+        marker.id === id
+          ? { ...marker, title: editTitle, description: editDesc }
+          : marker,
+      ),
+    );
     setEditingId(null);
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <MapView
-        style={{ flex: 1 }}
+        style={styles.container}
         mapStyle={
           'https://api.maptiler.com/maps/streets-v2/style.json?key=WoAUOvdhgbUpwZ1rVI4h'
         }
         zoomEnabled={true}
-        onPress={() => setSelected(null)}
+        onPress={() => {
+          setSelected(null);
+          setPendingCoords(null);
+          setShowForm(false);
+          setFormPosition(null);
+        }}
         onLongPress={(event: any) => {
           const coords = event.geometry.coordinates as [number, number];
           setPendingCoords(coords);
+          setShowForm(true);
+          setActiveMarker(coords);
+
+        
+          if (event.point) {
+            setFormPosition({ x: event.point.x, y: event.point.y });
+          } else {
+            setFormPosition({ x: 200, y: 400 }); 
+          }
         }}
       >
-        <Camera zoomLevel={5} centerCoordinate={markers[0].coordinates} />
+        <Camera
+          key={activeMarker ? activeMarker.toString() : 'default'}
+          zoomLevel={5}
+          centerCoordinate={activeMarker || [73.0479, 33.6844]}
+        />
 
-        {markers.map(m => (
+        {markers.map(marker => (
           <MarkerView
-            key={m.id}
-            coordinate={m.coordinates}
+            key={marker.id}
+            coordinate={marker.coordinates}
             anchor={{ x: 0.5, y: 1 }}
           >
             <Pressable
-              onPress={() => setSelected(prev => (prev === m.id ? null : m.id))}
+              onPress={() => {
+                const isSelected = selected === marker.id;
+                setSelected(isSelected ? null : marker.id);
+                setActiveMarker(isSelected ? null : marker.coordinates);
+              }}
             >
               <View style={{ alignItems: 'center' }}>
-                {selected === m.id && (
+                {selected === marker.id && (
                   <View style={styles.popup}>
-                    {editingId === m.id ? (
+                    {editingId === marker.id ? (
                       <>
                         <TextInput
                           style={styles.editInput}
@@ -127,14 +154,14 @@ export default function MapScreen() {
                         />
                         <View style={styles.editActions}>
                           <TouchableOpacity
-                            style={[styles.actionBtn, { backgroundColor: 'green' }]}
-                            onPress={() => saveEdit(m.id)}
+                            style={[styles.actionBtn, styles.saveBtn]}
+                            onPress={() => saveEdit(marker.id)}
                           >
                             <Text style={styles.actionText}>Save</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={[styles.actionBtn, { backgroundColor: 'gray' }]}
-                            onPress={cancelEdit}
+                            style={[styles.actionBtn, styles.cancelBtn]}
+                            onPress={() => setEditingId(null)}
                           >
                             <Text style={styles.actionText}>Cancel</Text>
                           </TouchableOpacity>
@@ -142,14 +169,27 @@ export default function MapScreen() {
                       </>
                     ) : (
                       <>
-                        <Text style={styles.popupTitle}>{m.title}</Text>
-                        <Text style={styles.popupDesc}>{m.description}</Text>
-                        <TouchableOpacity
-                          style={styles.editBtn}
-                          onPress={() => startEditing(m)}
-                        >
-                          <Text style={{ color: 'blue' }}>✏️ Edit</Text>
-                        </TouchableOpacity>
+                        <Text style={styles.popupTitle}>{marker.title}</Text>
+                        <Text style={styles.popupDesc}>
+                          {marker.description}
+                        </Text>
+                        <Text>Lon: {marker.coordinates[0].toFixed(4)}</Text>
+                        <Text>Lat: {marker.coordinates[1].toFixed(4)}</Text>
+                        <View style={styles.editActions}>
+                          <TouchableOpacity
+                            style={styles.editBtn}
+                            onPress={() => editDetails(marker)}
+                          >
+                            <Text style={styles.editBtnText}>Edit</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={styles.editBtn}
+                            onPress={() => deleteMarker(marker.id)}
+                          >
+                            <Text style={styles.deleteBtnText}>Delete</Text>
+                          </TouchableOpacity>
+                        </View>
                       </>
                     )}
                   </View>
@@ -162,98 +202,157 @@ export default function MapScreen() {
 
         {pendingCoords && (
           <MarkerView coordinate={pendingCoords} anchor={{ x: 0.5, y: 1 }}>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={styles.markerText}>🆕</Text>
-            </View>
+            <Pressable
+              onPress={() => {
+                setPendingCoords(null);
+                setShowForm(false);
+                setFormPosition(null);
+              }}
+            >
+              <View style={{ alignItems: 'center' }}>
+                <Text style={styles.markerText}>🆕</Text>
+              </View>
+            </Pressable>
           </MarkerView>
         )}
       </MapView>
 
-      <View style={styles.form}>
-        <Text style={styles.formTitle}>Add New Marker</Text>
-        <TextInput
-          placeholder="Title"
-          style={styles.input}
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TextInput
-          placeholder="Description"
-          style={styles.input}
-          value={desc}
-          onChangeText={setDesc}
-        />
-        <TouchableOpacity onPress={addMarker} style={styles.button}>
-          <Text style={styles.buttonText}>Save Location</Text>
-        </TouchableOpacity>
-      </View>
+      
+      {showForm && formPosition && (
+        <View
+          style={[
+            styles.form,
+            {
+              position: 'absolute',
+              top: formPosition.y + 100, 
+              left: Math.max(formPosition.x - 100, 10), 
+            },
+          ]}
+        >
+          <Text style={styles.formTitle}>Add New Marker</Text>
+          <TextInput
+            placeholder="Title"
+            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            autoFocus
+          />
+          <TextInput
+            placeholder="Description"
+            style={styles.input}
+            value={desc}
+            onChangeText={setDesc}
+            onSubmitEditing={addMarker}
+          />
+          <TouchableOpacity onPress={addMarker} style={styles.button}>
+            <Text style={styles.buttonText}>Save Marker</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   markerText: { fontSize: 30 },
   popup: {
     backgroundColor: 'white',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#333',
+    padding: 10,
+    borderRadius: 10,
     marginBottom: 6,
     alignItems: 'center',
-    minWidth: 120,
+    maxWidth: 200,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
-  popupTitle: { fontWeight: 'bold', fontSize: 13 },
-  popupDesc: { fontSize: 11, textAlign: 'center', marginBottom: 4 },
+  popupTitle: {
+    color: '#004e30',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 2,
+  },
+  popupDesc: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 6,
+    color: '#222',
+  },
   editBtn: {
     marginTop: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    backgroundColor: '#f3f4f6',
   },
   editInput: {
     borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 4,
-    padding: 4,
-    marginVertical: 2,
-    width: 120,
-    fontSize: 12,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    padding: 6,
+    marginVertical: 3,
+    width: 130,
+    fontSize: 13,
+    backgroundColor: '#f9fafb',
   },
   editActions: {
     flexDirection: 'row',
-    marginTop: 4,
-    gap: 6,
+    marginTop: 6,
+    gap: 8,
+  },
+  editBtnText: {
+    color: '#2563eb',
+    fontWeight: '600',
+    paddingHorizontal: 5,
+  },
+  deleteBtnText: {
+    color: 'red',
+    fontWeight: '600',
+    paddingHorizontal: 3,
   },
   actionBtn: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
   },
-  actionText: { color: 'white', fontSize: 12 },
+  saveBtn: { backgroundColor: '#2563eb' },
+  cancelBtn: { backgroundColor: '#6b7280' },
+  actionText: { color: 'white', fontSize: 12, fontWeight: '600' },
   form: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#fff',
+    width: 300,
+    backgroundColor: 'white',
     padding: 15,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
   },
   formTitle: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 6,
+    fontSize: 18,
+    marginBottom: 10,
     textAlign: 'center',
+    color: '#004e30',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#aaa',
-    marginBottom: 6,
-    padding: 6,
-    borderRadius: 5,
+    borderColor: '#ccc',
+    marginBottom: 8,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f9fafb',
   },
   button: {
-    backgroundColor: 'red',
+    backgroundColor: '#2563eb',
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 5,
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 4,
   },
-  buttonText: { color: 'white', fontWeight: 'bold' },
+  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
 });
