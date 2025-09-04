@@ -3,7 +3,8 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import Notification from './components/Notification'
+import Notification from './components/Notification' 
+import Notification1 from './components/Notify' 
 import Notification2 from './components/FirebaseNotification'
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -21,7 +22,7 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      <Notification2/>
+      <Notification1/>
     </View>
   );
 }
