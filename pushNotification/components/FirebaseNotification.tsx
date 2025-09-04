@@ -7,35 +7,44 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
+import { getApp } from '@react-native-firebase/app';
 import {
   getMessaging,
-  requestPermission,
   getToken,
   onMessage,
+  requestPermission,
   AuthorizationStatus,
-  FirebaseMessagingTypes,
+  type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import PushNotification from 'react-native-push-notification';
+import notifee, {
+  AndroidImportance,
+  EventType,
+  EventDetail,
+} from '@notifee/react-native';
 
 const Notification = () => {
   const [fcmToken, setFcmToken] = useState<string>('');
-  const messagingInstance = getMessaging();
 
   useEffect(() => {
     const initFCM = async () => {
       try {
+        const app = getApp();
+        const messagingInstance = getMessaging(app);
+
         const authStatus = await requestPermission(messagingInstance);
         const enabled =
           authStatus === AuthorizationStatus.AUTHORIZED ||
           authStatus === AuthorizationStatus.PROVISIONAL;
 
-        if (enabled) {
-          const token = await getToken(messagingInstance);
-          console.log('✅ FCM Token: ', token);
-          setFcmToken(token);
-        } else {
+        if (!enabled) {
           Alert.alert('Permission denied', 'Cannot get FCM token');
+          return;
         }
+
+        // Get FCM token
+        const token = await getToken(messagingInstance);
+        console.log('FCM Token:', token);
+        setFcmToken(token);
       } catch (error) {
         console.error('Error getting FCM token:', error);
       }
@@ -44,73 +53,110 @@ const Notification = () => {
     initFCM();
 
     if (Platform.OS === 'android') {
-      PushNotification.createChannel(
-        { channelId: 'default-channel-id', channelName: 'Default Channel' },
-        created => console.log('Notification channel created:', created),
-      );
+      notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+        importance: AndroidImportance.HIGH,
+      });
     }
 
-    // Foreground messages
     const unsubscribe = onMessage(
-      messagingInstance,
+      getMessaging(getApp()),
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('📩 Foreground FCM:', remoteMessage);
+        console.log('Foreground FCM:', remoteMessage);
 
-        const title: string =
-          typeof remoteMessage.notification?.title === 'string'
-            ? remoteMessage.notification.title
-            : typeof remoteMessage.data?.title === 'string'
-            ? remoteMessage.data.title
-            : 'New Message';
+        const title = String(
+          remoteMessage.notification?.title ??
+            remoteMessage.data?.title ??
+            'New Message',
+        );
+        const body = String(
+          remoteMessage.notification?.body ??
+            remoteMessage.data?.body ??
+            'You got a message!',
+        );
 
-        const body: string =
-          typeof remoteMessage.notification?.body === 'string'
-            ? remoteMessage.notification.body
-            : typeof remoteMessage.data?.body === 'string'
-            ? remoteMessage.data.body
-            : 'You got a message!';
+        //await notifee.cancelAllNotifications();
 
-        showLocalNotification(title, body);
+        await notifee.displayNotification({
+          id: `${Date.now()}-${Math.random()}`,
+          title,
+          body,
+          android: {
+            channelId: 'default',
+            importance: AndroidImportance.HIGH,
+            pressAction: { id: 'default' },
+            actions: [
+              { title: 'Mark as Read', pressAction: { id: 'mark-as-read' } },
+            ],
+          },
+        });
       },
     );
 
-    return unsubscribe;
-  }, []);
+    const unsubscribeNotifee = notifee.onForegroundEvent(
+      ({ type, detail }: { type: EventType; detail: EventDetail }) => {
+        if (
+          type === EventType.ACTION_PRESS &&
+          detail.pressAction?.id === 'mark-as-read'
+        ) {
+          const id = detail.notification?.id;
+          if (id) notifee.cancelNotification(id);
+        }
+      },
+    );
 
-  const showLocalNotification = (title: string, message: string) => {
-    PushNotification.localNotification({
-      channelId: 'default-channel-id',
-      title,
-      message,
-    });
-  };
+    return () => {
+      unsubscribe();
+      unsubscribeNotifee();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.Buttons}
         onPress={() =>
-          showLocalNotification('Local Notification', 'Hello Im Haroon!')
+          notifee.displayNotification({
+            title: 'Local Notification',
+            body: 'Hello, I’m Haroon!',
+            android: {
+              channelId: 'default',
+              importance: AndroidImportance.HIGH,
+              pressAction: { id: 'default' },
+              actions: [
+                { title: 'Mark as Read', pressAction: { id: 'mark-as-read' } },
+              ],
+            },
+          })
         }
       >
-        <Text>Local Notification</Text>
+        <Text>Send Local Notification</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.Buttons}
-        onPress={() => {
-          Alert.alert('Check console log for FCM Token', fcmToken);
-        }}
+        onPress={() => Alert.alert('FCM Token', fcmToken || 'Not available')}
       >
-        <Text>Check FCM Token from Console</Text>
+        <Text>Check FCM Token</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  Buttons: { marginVertical: 10, backgroundColor: '#FAFA', padding: 10, borderRadius: 5 },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  Buttons: {
+    marginVertical: 10,
+    backgroundColor: '#ddd',
+    padding: 12,
+    borderRadius: 6,
+  },
 });
 
 export default Notification;
